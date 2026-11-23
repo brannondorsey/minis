@@ -13,13 +13,22 @@ import { reducedMotion } from './util.js';
 
 const $ = (s) => document.querySelector(s);
 
-const minis = await fetch('minis/manifest.json')
-  .then((r) => r.json())
-  .then((d) => d.minis.map((m) => ({ ...m, base: `minis/${m.id}/` })));
+// A mini is one model; it can have several photos but only one sticker.
+// The gallery and viewer list every photo; the playground lists every mini.
+const minis = [];
+const photos = [];
+for (const m of (await fetch('minis/manifest.json').then((r) => r.json())).minis) {
+  const mini = { ...m, base: m.sticker ? `minis/${m.sticker.photo}/` : null };
+  minis.push(mini);
+  for (const p of m.photos) {
+    photos.push({ id: p.id, photo: p, base: `minis/${p.id}/`, name: m.name, description: m.description, mini });
+  }
+}
+const photoById = new Map(photos.map((p) => [p.id, p]));
 
 const sections = { gallery: $('#gallery'), stickers: $('#stickers') };
-const gallery = new Gallery(sections.gallery, minis, { open: (id) => go('gallery', id) });
-const viewer = new Viewer($('#viewer'), minis, {
+const gallery = new Gallery(sections.gallery, photos, { open: (id) => go('gallery', id) });
+const viewer = new Viewer($('#viewer'), photos, {
   close: closeViewer,
   change: (id) => {
     state.id = id;
@@ -38,7 +47,7 @@ function parse() {
   const [view = '', id = ''] = decodeURIComponent(location.hash.slice(1)).split('/');
   return {
     view: view === 'stickers' ? 'stickers' : 'gallery',
-    id: minis.some((m) => m.id === id) ? id : null,
+    id: photoById.has(id) ? id : null,
   };
 }
 
@@ -75,14 +84,17 @@ async function route() {
   };
   if (!morph) return update(false);
 
-  // Pair up the elements that should morph into each other.
-  const base = (view, id) => (view === 'gallery' ? gallery.tileFor(id) : getStickers().face(id));
+  // Pair up the elements that should morph into each other. A photo's
+  // counterpart in the playground is its mini's sticker.
+  const base = (view, id) =>
+    view === 'gallery' ? gallery.tileFor(id) : getStickers().face(photoById.get(id)?.mini.id);
+  const heroes = minis.filter((m) => m.sticker).map((m) => m.sticker.photo);
   let before = [];
   let after = () => [];
   let wait = Promise.resolve();
   if (prev.view !== next.view && !prev.id && !next.id) {
-    before = minis.map((m) => [base(prev.view, m.id), m.id]);
-    after = () => minis.map((m) => [base(next.view, m.id), m.id]);
+    before = heroes.map((id) => [base(prev.view, id), id]);
+    after = () => heroes.map((id) => [base(next.view, id), id]);
     if (next.view === 'stickers') wait = getStickers().ready();
   } else if (prev.view === next.view && !prev.id && next.id) {
     before = [[base(prev.view, next.id), next.id]];

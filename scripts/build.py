@@ -279,78 +279,137 @@ def main() -> int:
     ) if PHOTOS.exists() else []
     OUT.mkdir(parents=True, exist_ok=True)
 
-    known = {slug(p.stem): p for p in photos}
+    # Group photos into models: each [[mini]] in minis.toml lists the photos of
+    # one model; any photo not listed is a model of its own.
+    by_name = {p.stem: p for p in photos} | {slug(p.stem): p for p in photos}
     for key in meta:
-        if key not in known and slug(key) not in known:
-            print(f"warning: minis.toml has [{key}] but there is no matching photo", file=sys.stderr)
+        if key != "mini":
+            print(f"warning: ignoring [{key}] in minis.toml (use [[mini]] entries)", file=sys.stderr)
+    groups, taken_by = [], {}
+    for i, g in enumerate(meta.get("mini", [])):
+        names = g.get("photos") or []
+        names = [names] if isinstance(names, str) else names
+        paths = []
+        for n in names:
+            p = by_name.get(str(n)) or by_name.get(slug(str(n)))
+            if not p:
+                print(f"warning: minis.toml mini #{i + 1} lists {n!r} but there is no such photo", file=sys.stderr)
+            elif p in taken_by:
+                print(f"warning: {p.name} is listed in more than one [[mini]]", file=sys.stderr)
+            else:
+                taken_by[p] = i
+                paths.append(p)
+        if paths:
+            groups.append((paths, g))
+    groups += [([p], {}) for p in photos if p not in taken_by]
 
     minis = []
-    for photo in photos:
-        mid = slug(photo.stem)
-        info = meta.get(photo.stem) or meta.get(mid) or {}
+    for paths, info in groups:
         if info.get("hidden"):
             continue
-        override = next((photo.with_name(photo.stem + ".cutout" + e) for e in (".png", ".webp") if photo.with_name(photo.stem + ".cutout" + e).exists()), None)
-        out = OUT / mid
-        cache = out / "build.json"
-        digest = file_hash(photo, override) if override else file_hash(photo)
-
-        built = None
-        if cache.exists() and not args.force:
-            built = json.loads(cache.read_text())
-            if built.get("hash") != digest:
-                built = None
-
-        if built is None:
-            print(f"• {photo.name} → site/minis/{mid}/")
-            if out.exists():
-                shutil.rmtree(out)
-            out.mkdir(parents=True)
-            im = load_rgb(photo)
-            built = {"hash": digest, "photo": build_photo(im, out)}
-            if override:
-                rgba = Image.open(override).convert("RGBA")
-            else:
-                key = hashlib.sha1(photo.read_bytes() + args.model.encode()).hexdigest()[:16]
-                cached = CACHE / f"{mid}-{key}.png"
-                if cached.exists():
-                    rgba = Image.open(cached).convert("RGBA")
-                else:
-                    rgba = cutout(im, args.model)
-                    CACHE.mkdir(parents=True, exist_ok=True)
-                    for old in CACHE.glob(f"{mid}-*.png"):
-                        old.unlink()
-                    rgba.save(cached)
-            built["sticker"] = build_sticker(rgba, out)
-            cache.write_text(json.dumps(built, indent=1))
+        want = info.get("sticker", True)
+        if want is False:
+            sticker_path = None
+        elif isinstance(want, str):
+            sticker_path = by_name.get(want) or by_name.get(slug(want))
+            if sticker_path not in paths:
+                print(f"warning: sticker {want!r} is not one of that mini's photos; using the first", file=sys.stderr)
+                sticker_path = paths[0]
         else:
-            print(f"  {photo.name} (cached)")
+            sticker_path = paths[0]
 
-        entry = {"id": mid, "taken": capture_time(photo)}
+        entry = {"id": slug(paths[0].stem)}
         if info.get("name"):
             entry["name"] = str(info["name"]).strip()
         if info.get("description"):
             entry["description"] = markdown(str(info["description"]))
-        entry["photo"] = built["photo"]
-        if info.get("sticker", True):
-            entry["sticker"] = built["sticker"]
+        entry["photos"] = []
+        for p in paths:
+            pid = slug(p.stem)
+            built = build_one(p, pid, p == sticker_path, args)
+            entry["photos"].append({"id": pid, "taken": capture_time(p), **built["photo"]})
+            if p == sticker_path:
+                entry["sticker"] = {"photo": pid, **built["sticker"]}
         minis.append(entry)
 
-    # Newest first (by capture time), then by file name, unless `order` is given.
-    minis.sort(key=lambda m: (m["taken"], m["id"]), reverse=True)
-    order = {slug(k): v.get("order") for k, v in meta.items() if isinstance(v, dict) and "order" in v}
+    # Newest first (by each mini's latest photo), unless `order` is given.
+    newest = lambda m: max(ph["taken"] for ph in m["photos"])
+    minis.sort(key=lambda m: (newest(m), m["id"]), reverse=True)
+    order = {slug(g[0][0].stem): g[1]["order"] for g in groups if "order" in g[1]}
     if order:
         minis.sort(key=lambda m: order.get(m["id"], float("inf")))
 
+    live = {ph["id"] for m in minis for ph in m["photos"]}
     for stale in OUT.iterdir():
-        if stale.is_dir() and stale.name not in {m["id"] for m in minis}:
+        if stale.is_dir() and stale.name not in live:
             print(f"  removing stale {stale.relative_to(ROOT)}")
             shutil.rmtree(stale)
 
     # Deterministic output, so a rebuild with no changes leaves git clean.
     (OUT / "manifest.json").write_text(json.dumps({"minis": minis}, indent=1) + "\n")
-    print(f"wrote site/minis/manifest.json ({len(minis)} minis)")
+    n = sum(len(m["photos"]) for m in minis)
+    print(f"wrote site/minis/manifest.json ({len(minis)} minis, {n} photos)")
     return 0
+
+
+STICKER_FILES = ("sticker-sm.webp", "sticker-lg.webp", "shadow.webp")
+
+
+def build_one(photo: Path, pid: str, sticker: bool, args) -> dict:
+    """Build (or reuse) one photo's assets in site/minis/<pid>/."""
+    override = next(
+        (photo.with_name(photo.stem + ".cutout" + e) for e in (".png", ".webp")
+         if photo.with_name(photo.stem + ".cutout" + e).exists()),
+        None,
+    )
+    out = OUT / pid
+    cache = out / "build.json"
+    digest = file_hash(photo, override) if override else file_hash(photo)
+
+    built = None
+    if cache.exists() and not args.force:
+        built = json.loads(cache.read_text())
+        if built.get("hash") != digest:
+            built = None
+
+    im = None
+    dirty = built is None
+    if built is None:
+        print(f"• {photo.name} → site/minis/{pid}/")
+        if out.exists():
+            shutil.rmtree(out)
+        out.mkdir(parents=True)
+        im = load_rgb(photo)
+        built = {"hash": digest, "photo": build_photo(im, out)}
+
+    if sticker and "sticker" not in built:
+        print(f"  cutting out a sticker from {photo.name}")
+        if override:
+            rgba = Image.open(override).convert("RGBA")
+        else:
+            key = hashlib.sha1(photo.read_bytes() + args.model.encode()).hexdigest()[:16]
+            cached = CACHE / f"{pid}-{key}.png"
+            if cached.exists():
+                rgba = Image.open(cached).convert("RGBA")
+            else:
+                rgba = cutout(im or load_rgb(photo), args.model)
+                CACHE.mkdir(parents=True, exist_ok=True)
+                for old in CACHE.glob(f"{pid}-*.png"):
+                    old.unlink()
+                rgba.save(cached)
+        built["sticker"] = build_sticker(rgba, out)
+        dirty = True
+    elif not sticker and "sticker" in built:
+        for f in STICKER_FILES:
+            (out / f).unlink(missing_ok=True)
+        del built["sticker"]
+        dirty = True
+
+    if dirty:
+        cache.write_text(json.dumps(built, indent=1))
+    else:
+        print(f"  {photo.name} (cached)")
+    return built
 
 
 if __name__ == "__main__":

@@ -1,0 +1,27 @@
+{
+ "hash": "4e8bb6f79384fc18",
+ "photo": {
+  "w": 5376,
+  "h": 4031,
+  "srcs": [
+   {
+    "w": 480,
+    "src": "photo-480.webp"
+   },
+   {
+    "w": 960,
+    "src": "photo-960.webp"
+   },
+   {
+    "w": 1600,
+    "src": "photo-1600.webp"
+   },
+   {
+    "w": 2400,
+    "src": "photo-2400.webp"
+   }
+  ],
+  "lqip": "data:image/webp;base64,UklGRqYAAABXRUJQVlA4IJoAAADQBACdASoYABIAPu1krE+ppSQiMBgIATAdiWMAy6QInp/lm9IypnBH9TAaqFLWwADqrg4NqwIbv3l+12XQxxIyM5oR3yiTdGpax1u0firAv8mCepO0jymNAgCskU663bkpJBAgaMkRvm4TexOTk4wL7E3L8XY7Bn/lIeSTaI4RkngVfcuGO+t496g6NfI/RwKUPU1pPA0QlAAA",
+  "color": "#a7a4a1"
+ }
+}

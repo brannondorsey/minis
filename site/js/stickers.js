@@ -129,11 +129,26 @@ export class Stickers {
   measure() {
     const W = this.stage.clientWidth || innerWidth;
     const H = this.stage.clientHeight || innerHeight;
-    const n = Math.max(1, this.items.length);
-    const side = clamp(Math.sqrt((W * Math.max(200, H - 150)) / n) * 0.68, 84, Math.min(W, H) * 0.55);
-    for (const it of this.items) it.setBase(side, Math.min(W, H) * 0.75);
     this.W = W;
     this.H = H;
+    // Size stickers so each one fits its slot in the default layout grid.
+    const { cw, ch } = this.grid();
+    const side = clamp(Math.min(cw, ch) * 0.86, 84, Math.min(W, H) * 0.55);
+    for (const it of this.items) it.setBase(side, cw * 0.88, ch * 0.88);
+  }
+
+  // The default layout: a near-square grid between the header and the tools.
+  grid() {
+    const { W, H } = this;
+    const n = Math.max(1, this.items.length);
+    const top = 64;
+    const bottom = W < 640 ? 112 : 56;
+    const side = 12;
+    const aw = W - 2 * side;
+    const ah = Math.max(120, H - top - bottom);
+    const cols = clamp(Math.round(Math.sqrt((n * aw) / ah)), 1, n);
+    const rows = Math.ceil(n / cols);
+    return { top, side, cols, rows, cw: aw / cols, ch: ah / rows };
   }
 
   resize() {
@@ -150,17 +165,8 @@ export class Stickers {
 
   // Seeded, roughly even scatter that is the same every time.
   defaults() {
-    const { W, H } = this;
     const n = this.items.length;
-    const top = 76;
-    const bottom = W < 640 ? 120 : 64;
-    const side = 12;
-    const aw = W - 2 * side;
-    const ah = Math.max(120, H - top - bottom);
-    const cols = clamp(Math.round(Math.sqrt((n * aw) / ah)), 1, n || 1);
-    const rows = Math.ceil(n / cols);
-    const cw = aw / cols;
-    const ch = ah / rows;
+    const { top, side, cols, rows, cw, ch } = this.grid();
     const rnd = rng(this.items.map((i) => i.id).join('|'));
     const order = [...this.items];
     for (let i = order.length - 1; i > 0; i--) {
@@ -174,8 +180,8 @@ export class Stickers {
       const inRow = r === rows - 1 ? n - r * cols : cols;
       const offset = ((cols - inRow) * cw) / 2;
       out[it.id] = {
-        x: side + offset + (c + 0.5) * cw + (rnd() - 0.5) * cw * 0.22,
-        y: top + (r + 0.5) * ch + (rnd() - 0.5) * ch * 0.22,
+        x: side + offset + (c + 0.5) * cw + (rnd() - 0.5) * cw * 0.14,
+        y: top + (r + 0.5) * ch + (rnd() - 0.5) * ch * 0.14,
         a: (rnd() - 0.5) * 0.34,
         s: 1,
         z: k + 1,
@@ -434,7 +440,7 @@ export class Stickers {
       const tap = now - p.t0 < 320 && Math.hypot(p.x - p.x0, p.y - p.y0) < 8;
       if (tap && this.lastTap?.it === it && now - this.lastTap.t < 420) {
         this.lastTap = null;
-        this.open(it.id);
+        this.open(it.m.sticker.photo);
       } else {
         this.lastTap = tap ? { it, t: now } : null;
       }
@@ -555,10 +561,10 @@ class Sticker {
     this.mvx = this.mvy = this.tiltX = this.tiltY = 0;
   }
 
-  setBase(side, maxDim) {
+  setBase(side, maxW, maxH) {
     let w = side * Math.sqrt(this.ar);
     let h = side / Math.sqrt(this.ar);
-    const k = Math.min(1, maxDim / Math.max(w, h));
+    const k = Math.min(1, maxW / w, maxH / h);
     this.w0 = w * k;
     this.h0 = h * k;
     this.face.style.width = `${this.w0}px`;

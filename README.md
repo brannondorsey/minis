@@ -9,16 +9,17 @@ It's plain HTML, CSS and JS with no framework and no build step for the frontend
 
 ## Adding a mini
 
-1. Drop the photo in `photos/` (any of jpg/png/webp/tif).
-2. Optionally give it a name and description in [`minis.toml`](minis.toml):
+1. Drop the photos in `photos/` (any of jpg/png/webp/tif).
+2. Optionally group them by model and add a name and description in [`minis.toml`](minis.toml):
 
    ```toml
-   [DSC_8855]            # the photo's file name, without the extension
+   [[mini]]
+   photos = ["DSC_8855", "DSC_8849", "DSC_8859"]   # file names, without extension
    name = "Mimic"
    description = "Sculpt by [Someone](https://example.com). Painted *Nov 2026*."
    ```
 
-   Descriptions support `[links](https://…)`, bare URLs, `*italic*` and `**bold**`. You can also set `order`, `sticker = false` or `hidden = true`.
+   Every photo appears in the gallery, with a model's photos kept together. Each model gets one sticker, cut from its first photo. A photo that isn't listed in any `[[mini]]` counts as a model of its own. Descriptions support `[links](https://…)`, bare URLs, `*italic*` and `**bold**`. You can also set `sticker = "<photo>"` or `sticker = false`, `order`, and `hidden = true`.
 3. Build the assets and commit:
 
    ```sh
@@ -26,9 +27,9 @@ It's plain HTML, CSS and JS with no framework and no build step for the frontend
    python3 scripts/build.py
    ```
 
-   Or just push the photo. The deploy workflow runs the same build and commits the results for you.
+   Or just push the photos. The deploy workflow runs the same build and commits the results for you.
 
-For each photo the build writes responsive WebPs, a background-removed sticker with a white die-cut border (using [rembg](https://github.com/danielgatis/rembg) with BiRefNet), a soft shadow sprite and a hit-test mask. Results are cached, so only new or changed photos get processed. The first run downloads a model of about 1 GB.
+The build writes responsive WebPs for every photo. For each sticker photo it also makes a background-removed sticker with a white die-cut border (using [rembg](https://github.com/danielgatis/rembg) with BiRefNet), a soft shadow sprite and a hit-test mask. Results are cached, so only new or changed photos get processed. The first cutout downloads a model of about 1 GB.
 
 If a cutout comes out wrong, put your own transparent PNG next to the photo as `photos/<name>.cutout.png` and it will be used instead.
 
