@@ -209,10 +209,7 @@ def build_sticker(rgba: Image.Image, out: Path) -> dict:
     canvas = Image.new("L", (sm.width + 2 * px, sm.height + 2 * py), 0)
     canvas.paste(sm, (px, py))
     canvas = canvas.filter(ImageFilter.GaussianBlur(max(3, max(sm.size) * 0.035)))
-    # Pure black, so the page can draw it with plain alpha blending: no
-    # filter or blend mode, which would force an offscreen render surface
-    # whose edges some mobile GPUs draw as a faint seam on rotated stickers.
-    shadow = Image.new("RGBA", canvas.size, (0, 0, 0, 0))
+    shadow = Image.new("RGBA", canvas.size, (20, 16, 12, 0))
     shadow.putalpha(canvas)
     shadow.save(out / "shadow.webp", "WEBP", quality=80)
 

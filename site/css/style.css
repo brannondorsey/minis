@@ -507,6 +507,16 @@ body[data-view="stickers"] {
   mask-size: 100% 100%;
 }
 
+.st .shadow {
+  mix-blend-mode: multiply;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .st .shadow {
+    mix-blend-mode: normal;
+    filter: brightness(0);
+  }
+}
 
 .handle {
   position: fixed;
