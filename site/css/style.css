@@ -578,11 +578,16 @@ body[data-view="stickers"] {
 }
 
 .hint {
-  bottom: calc(14px + env(safe-area-inset-bottom));
+  bottom: calc(10px + env(safe-area-inset-bottom));
   width: max-content;
   max-width: calc(100vw - 2 * var(--edge));
+  padding: 3px 12px 4px;
+  border-radius: 999px;
   font-size: 11px;
   color: var(--muted);
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
 .hint.gone {

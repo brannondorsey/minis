@@ -86,7 +86,7 @@ export class Stickers {
       this.dirty = !!saved; // only persist once something was actually moved
       this.place(saved || {});
     }
-    this.hint.classList.remove('gone');
+    this.hint.classList.toggle('gone', !!this.dirty); // returning players know the drill
     const now = performance.now();
     const order = [...this.items].sort((a, b) => a.z - b.z);
     const stagger = Math.min(110, 1400 / Math.max(1, order.length));

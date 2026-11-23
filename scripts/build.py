@@ -347,8 +347,8 @@ def main() -> int:
             print(f"  removing stale {stale.relative_to(ROOT)}")
             shutil.rmtree(stale)
 
-    manifest = {"generated": datetime.now().isoformat(timespec="seconds"), "minis": minis}
-    (OUT / "manifest.json").write_text(json.dumps(manifest, indent=1))
+    # Deterministic output, so a rebuild with no changes leaves git clean.
+    (OUT / "manifest.json").write_text(json.dumps({"minis": minis}, indent=1) + "\n")
     print(f"wrote site/minis/manifest.json ({len(minis)} minis)")
     return 0
 
