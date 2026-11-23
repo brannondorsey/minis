@@ -111,7 +111,12 @@ function justify(ars, W, target, gap) {
     rows.push({ ars: row, h });
     row = [];
   }
-  if (row.length) rows.push({ ars: row, h: Math.min(target, rowHeight(row, W, gap)), last: true });
+  // Last row: fill the width too, unless that would blow it up (e.g. a lone
+  // portrait on a wide screen); then keep it at the target height, centered.
+  if (row.length) {
+    const h = rowHeight(row, W, gap);
+    rows.push(h <= target * 1.5 ? { ars: row, h } : { ars: row, h: target, last: true });
+  }
   return rows;
 }
 
