@@ -1,0 +1,65 @@
+# Builds assets for any new photos, commits them back, then deploys site/ to
+# GitHub Pages. Enable it once in Settings → Pages → Source: "GitHub Actions".
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.rembg
+            ~/.u2net
+          key: rembg-models-v1
+
+      # Fast path: only install the segmentation stack when a photo needs it
+      # (build.py exits 3 if it has to cut out a new photo without rembg).
+      - name: Build assets
+        run: |
+          pip install pillow numpy scipy
+          python scripts/build.py || {
+            [ $? -eq 3 ] || exit 1
+            pip install -r requirements.txt
+            python scripts/build.py
+          }
+
+      - name: Commit generated assets
+        run: |
+          if [ -n "$(git status --porcelain site/minis)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add site/minis
+            git commit -m "Build assets for new minis"
+            git push
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4
