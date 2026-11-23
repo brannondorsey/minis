@@ -27,8 +27,8 @@ export class Stickers {
       'div',
       'hint',
       coarse
-        ? 'drag · fling · pinch to resize & spin · double-tap for the photo'
-        : 'drag · fling · scroll to resize · shift + scroll to spin · double-click for the photo',
+        ? 'drag · fling · pinch or pull the handle to resize · double-tap for the photo'
+        : 'drag · fling · click a sticker, then pull its handle to resize · double-click for the photo',
     );
     this.caption = el('div', 'caption gone');
     this.caption.setAttribute('aria-live', 'polite');
@@ -45,7 +45,16 @@ export class Stickers {
     );
     this.syncSound();
 
-    root.append(this.stage, this.caption, this.hint, tools);
+    // Corner handle on the selected sticker: pull it out/in to resize, around to spin.
+    this.handle = el('div', 'handle');
+    this.handle.setAttribute('aria-hidden', 'true');
+    this.handle.innerHTML = '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M6 6v5M6 6h5M18 18v-5M18 18h-5"/></svg>';
+    this.handle.addEventListener('pointerdown', (e) => this.resizeStart(e));
+    this.handle.addEventListener('pointermove', (e) => this.resizeMove(e));
+    this.handle.addEventListener('pointerup', (e) => this.resizeEnd(e));
+    this.handle.addEventListener('pointercancel', (e) => this.resizeEnd(e));
+
+    root.append(this.stage, this.handle, this.caption, this.hint, tools);
 
     this.tick = this.tick.bind(this);
     const s = this.stage;
@@ -113,6 +122,7 @@ export class Stickers {
   hide() {
     this.active = false;
     this.pointers.clear();
+    this.select(null);
     this.save();
   }
 
@@ -255,15 +265,80 @@ export class Stickers {
   }
 
   select(it) {
-    if (it && it === this.selected) return;
-    this.selected = it;
-    const box = it && caption(it.m, 'caption');
-    if (box) {
-      this.caption.replaceChildren(...box.childNodes);
-      this.caption.classList.remove('gone');
-    } else {
-      this.caption.classList.add('gone');
+    if (it !== this.selected) {
+      this.selected = it;
+      const box = it && caption(it.m, 'caption');
+      if (box) {
+        this.caption.replaceChildren(...box.childNodes);
+        this.caption.classList.remove('gone');
+      } else {
+        this.caption.classList.add('gone');
+      }
     }
+    this.placeHandle();
+  }
+
+  // Park the handle on the selected sticker's bottom-right corner (kept on
+  // screen), and only show it while the sticker is at rest or being resized.
+  placeHandle() {
+    const it = this.selected;
+    const h = this.handle;
+    const show =
+      !!it &&
+      this.active &&
+      (it.resizing ||
+        (!it.held.length && !it.tween && !it.dropAt && it.lift < 0.25 && Math.hypot(it.vx, it.vy) < 60));
+    h.classList.toggle('on', show);
+    if (!it) return;
+    const k = it.s * (1 + 0.05 * Math.max(0, it.lift)) * 0.94;
+    const lx = (it.w0 / 2) * k;
+    const ly = (it.h0 / 2) * k;
+    const c = Math.cos(it.a);
+    const s = Math.sin(it.a);
+    const x = clamp(it.x + lx * c - ly * s, 26, this.W - 26);
+    const y = clamp(it.y + lx * s + ly * c, 70, this.H - 60);
+    h.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) rotate(${it.a}rad)`;
+  }
+
+  resizeStart(e) {
+    const it = this.selected;
+    if (!it || e.button > 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    this.handle.setPointerCapture(e.pointerId);
+    const dx = e.clientX - it.x;
+    const dy = e.clientY - it.y;
+    this.rs = { id: e.pointerId, it, d: Math.max(12, Math.hypot(dx, dy)), ang: Math.atan2(dy, dx), s: it.s, a: it.a };
+    it.resizing = true;
+    it.vx = it.vy = it.va = 0;
+    it.tween = null;
+    this.toFront(it);
+    this.handle.classList.add('active');
+    sfx.peel(0.5);
+    this.interacted();
+    this.wake();
+  }
+
+  resizeMove(e) {
+    const R = this.rs;
+    if (!R || e.pointerId !== R.id) return;
+    const it = R.it;
+    const dx = e.clientX - it.x;
+    const dy = e.clientY - it.y;
+    it.s = clamp((R.s * Math.hypot(dx, dy)) / R.d, MIN_S, MAX_S);
+    it.a = R.a + Math.atan2(dy, dx) - R.ang;
+    it.upgrade();
+    this.wake();
+  }
+
+  resizeEnd(e) {
+    const R = this.rs;
+    if (!R || e.pointerId !== R.id) return;
+    R.it.resizing = false;
+    this.rs = null;
+    this.handle.classList.remove('active');
+    this.saveSoon();
+    this.wake();
   }
 
   syncSound() {
@@ -424,6 +499,7 @@ export class Stickers {
         it.render();
       }
     }
+    this.placeHandle();
     if (awake && this.active) {
       requestAnimationFrame(this.tick);
     } else {
@@ -640,7 +716,7 @@ class Sticker {
   // ------------------------------------------------------------ physics
 
   step(dt, now, stage) {
-    const held = this.held.length > 0;
+    const held = this.held.length > 0 || this.resizing;
     let busy = held;
 
     if (this.dropAt) {
@@ -652,7 +728,7 @@ class Sticker {
       busy = true;
     }
 
-    let target = held ? 1 : 0;
+    let target = this.held.length ? 1 : this.resizing ? 0.4 : 0;
 
     if (this.tween) {
       const T = this.tween;

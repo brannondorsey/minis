@@ -54,6 +54,10 @@ export class Viewer {
     this.slides.forEach((s) => this.io.observe(s));
 
     this.scroller.addEventListener('wheel', (e) => this.wheel(e), { passive: false });
+    // Click / tap anywhere off the photo (and its caption) closes, like the X.
+    this.scroller.addEventListener('click', (e) => {
+      if (!e.target.closest('.frame, .cap, a, button')) this.requestClose();
+    });
     addEventListener('resize', () => this.isOpen && this.fit());
     document.addEventListener('keydown', (e) => this.isOpen && this.key(e));
   }

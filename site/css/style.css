@@ -104,8 +104,7 @@ main {
   z-index: 20;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
+  justify-content: center;
   padding: calc(14px + env(safe-area-inset-top)) var(--edge) 14px;
   pointer-events: none;
 }
@@ -117,30 +116,6 @@ main {
 body[data-view="stickers"] .bar {
   position: fixed;
   inset: 0 0 auto 0;
-}
-
-.mark {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.mark span {
-  font: italic 30px/1 var(--serif);
-  letter-spacing: -0.01em;
-}
-
-.mark small {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-@media (max-width: 520px) {
-  .mark small {
-    display: none;
-  }
 }
 
 .switch {
@@ -416,6 +391,10 @@ body[data-view="stickers"] .foot {
   pointer-events: auto;
 }
 
+.v-ui .v-count {
+  pointer-events: none; /* taps here fall through and close the viewer */
+}
+
 .v-ui .v-actions {
   display: flex;
   gap: 4px;
@@ -537,6 +516,54 @@ body[data-view="stickers"] {
     mix-blend-mode: normal;
     filter: brightness(0);
   }
+}
+
+.handle {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 15;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  color: #1c1b19;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 4px 14px rgba(0, 0, 0, 0.14);
+  cursor: nwse-resize;
+  touch-action: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s var(--ease);
+}
+
+.handle::before {
+  content: "";
+  position: absolute;
+  inset: -10px; /* comfortable touch target */
+  border-radius: 50%;
+}
+
+.handle.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.handle svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform 0.2s var(--ease);
+}
+
+.handle:hover svg,
+.handle.active svg {
+  transform: scale(1.15);
 }
 
 .tools {
