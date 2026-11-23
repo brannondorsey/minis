@@ -19,7 +19,7 @@ It's plain HTML, CSS and JS with no framework and no build step for the frontend
    description = "Sculpt by [Someone](https://example.com). Painted *Nov 2026*."
    ```
 
-   Every photo appears in the gallery, with a model's photos kept together. Each model gets one sticker, cut from its first photo. A photo that isn't listed in any `[[mini]]` counts as a model of its own. Descriptions support `[links](https://…)`, bare URLs, `*italic*` and `**bold**`. You can also set `sticker = "<photo>"` or `sticker = false`, `order`, and `hidden = true`.
+   Every photo appears in the gallery, with a model's photos kept together. Each model gets one sticker, cut from its first photo. A photo that isn't listed in any `[[mini]]` counts as a model of its own. The gallery follows the file's order, top to bottom, with photos that aren't listed yet shown first (newest first), so add new minis at the top. Descriptions support `[links](https://…)`, bare URLs, `*italic*` and `**bold**`. You can also set `sticker = "<photo>"`, `sticker = false` or `hidden = true`.
 3. Build the assets and commit:
 
    ```sh

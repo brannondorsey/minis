@@ -301,7 +301,8 @@ def main() -> int:
                 paths.append(p)
         if paths:
             groups.append((paths, g))
-    groups += [([p], {}) for p in photos if p not in taken_by]
+    loose = {p for p in photos if p not in taken_by}
+    groups += [([p], {}) for p in sorted(loose)]
 
     minis = []
     for paths, info in groups:
@@ -330,14 +331,16 @@ def main() -> int:
             entry["photos"].append({"id": pid, "taken": capture_time(p), **built["photo"]})
             if p == sticker_path:
                 entry["sticker"] = {"photo": pid, **built["sticker"]}
+        entry["_loose"] = paths[0] in loose
         minis.append(entry)
 
-    # Newest first (by each mini's latest photo), unless `order` is given.
+    # Order: photos not yet in minis.toml lead (newest first), then the
+    # [[mini]] entries exactly as they are listed there.
     newest = lambda m: max(ph["taken"] for ph in m["photos"])
-    minis.sort(key=lambda m: (newest(m), m["id"]), reverse=True)
-    order = {slug(g[0][0].stem): g[1]["order"] for g in groups if "order" in g[1]}
-    if order:
-        minis.sort(key=lambda m: order.get(m["id"], float("inf")))
+    new = sorted((m for m in minis if m["_loose"]), key=lambda m: (newest(m), m["id"]), reverse=True)
+    minis = new + [m for m in minis if not m["_loose"]]
+    for m in minis:
+        del m["_loose"]
 
     live = {ph["id"] for m in minis for ph in m["photos"]}
     for stale in OUT.iterdir():

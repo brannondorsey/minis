@@ -1,23 +1,27 @@
 # Optional details for your minis.
 #
-# Every photo in photos/ shows up in the gallery automatically, newest first.
-# To group several photos of the same model, list them in a [[mini]] entry:
-# they sit together in the gallery, and the model gets a single sticker,
-# cut from its first photo. Fields (all optional except photos):
+# Every photo in photos/ shows up in the gallery automatically. To group
+# several photos of the same model, list them in a [[mini]] entry: they sit
+# together in the gallery, and the model gets a single sticker, cut from its
+# first photo.
+#
+# Order: the gallery follows this file, top to bottom. Photos not listed here
+# yet come first, newest first. Add new minis at the top.
+#
+# Fields (all optional except photos):
 #
 #   photos      = ["DSC_8855", "DSC_8859"]   # file names, without extension
 #   name        = "Mimic"
 #   description = "Markdown-lite: [links](https://example.com), bare URLs, *italic*, **bold**."
 #   sticker     = "DSC_8859"   # cut the sticker from another of its photos
 #   sticker     = false        # no sticker for this one
-#   order       = 1            # pin to a position (lower comes first)
 #   hidden      = true         # leave it out entirely
 
 [[mini]]
-photos = ["DSC_8864", "DSC_8871", "DSC_8874"]
+photos = ["DSC_8855", "DSC_8849", "DSC_8859", "DSC_8852"]
 
 [[mini]]
 photos = ["DSC_8866", "DSC_8860", "DSC_8869"]
 
 [[mini]]
-photos = ["DSC_8855", "DSC_8849", "DSC_8859", "DSC_8852"]
+photos = ["DSC_8864", "DSC_8871", "DSC_8874"]
