@@ -10,7 +10,7 @@
   --accent: #c8371f;
   --edge: clamp(10px, 2.2vw, 32px);
   --gap: clamp(6px, 0.9vw, 12px);
-  --serif: "Instrument Serif", ui-serif, Georgia, "Times New Roman", serif;
+  --serif: "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
   --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --ease: cubic-bezier(0.2, 0.7, 0.15, 1);
   color-scheme: light;
@@ -228,7 +228,7 @@ body[data-view="stickers"] .foot {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.86);
   color: #1c1b19;
-  font: italic 15px/1.2 var(--serif);
+  font: 500 15px/1.2 var(--serif);
   opacity: 0;
   transform: translateY(4px);
   transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
@@ -355,7 +355,7 @@ body[data-view="stickers"] .foot {
 .cap h2 {
   margin: 0;
   color: var(--fg);
-  font: italic 24px/1.15 var(--serif);
+  font: 500 24px/1.15 var(--serif);
 }
 
 .cap p {
@@ -635,7 +635,7 @@ body[data-view="stickers"] {
 .caption h2 {
   margin: 0;
   color: var(--fg);
-  font: italic 26px/1.1 var(--serif);
+  font: 500 26px/1.1 var(--serif);
 }
 
 .caption p {
