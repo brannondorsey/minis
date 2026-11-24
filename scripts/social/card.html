@@ -1,0 +1,36 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,500;1,6..72,400&display=swap">
+<style>
+  html, body { margin: 0; }
+  .card {
+    width: 1200px; height: 630px; position: relative; overflow: hidden;
+    background-color: #f6f5f2;
+    background-image: radial-gradient(rgba(28,27,25,0.11) 1.3px, transparent 1.8px);
+    background-size: 26px 26px; background-position: 13px 13px;
+    font-family: "Newsreader", Georgia, serif; color: #1c1b19;
+  }
+  .text { position: absolute; left: 84px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; }
+  .dot { width: 34px; height: 34px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1.5px #d9d6cf; display: grid; place-items: center; margin-bottom: 30px; }
+  .dot::after { content: ""; width: 20px; height: 20px; border-radius: 50%; background: #c8371f; }
+  h1 { font-size: 168px; font-weight: 500; line-height: .85; letter-spacing: -0.035em; margin: 0 0 26px -6px; }
+  p { font-size: 40px; font-style: italic; font-weight: 400; color: #5b5850; margin: 0; line-height: 1.2; }
+  .by { margin-top: 44px; font: 500 22px ui-sans-serif, system-ui, "Helvetica Neue", sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #8f8b83; }
+  .mech { position: absolute; width: 580px; right: 48px; top: 48px; transform: rotate(-5deg);
+    filter: drop-shadow(0 2px 3px rgba(28,27,25,.18)) drop-shadow(0 22px 30px rgba(28,27,25,.22)); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="text">
+      <div class="dot"></div>
+      <h1>minis</h1>
+      <p>hand-painted miniatures</p>
+      <div class="by">Brannon Dorsey</div>
+    </div>
+    <img class="mech" src="../../site/minis/dsc-8864/sticker-lg.webp" alt="">
+  </div>
+</body>
+</html>
