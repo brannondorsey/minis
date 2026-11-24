@@ -108,6 +108,11 @@ export class Viewer {
       this.root.classList.toggle('instant', instant);
       this.root.hidden = false;
       document.documentElement.style.overflow = 'hidden';
+      // Each opening starts fresh: a model's caption shows on the first of
+      // its photos you land on, then stays off its other photos.
+      this.seen = new Set();
+      for (const s of this.slides) s.classList.toggle('has-cap', !!s.querySelector('.cap'));
+      this.claim(i);
       this.fit();
       this.load(i);
       this.scroller.scrollTop = i * this.scroller.clientHeight;
@@ -154,9 +159,23 @@ export class Viewer {
   setIndex(i) {
     if (i === this.index && this.counter.textContent) return;
     this.index = i;
+    if (this.isOpen) this.claim(i);
     this.counter.textContent = `${i + 1} / ${this.minis.length}`;
     this.load(i);
     if (this.isOpen) this.onChange(this.minis[i].id);
+  }
+
+  // Show the caption only on the first photo of each model you see; hide it
+  // (and give the space back to the photo) on that model's other photos.
+  claim(i) {
+    const mini = this.minis[i].mini ?? this.minis[i];
+    if (this.seen.has(mini)) return;
+    this.seen.add(mini);
+    const others = this.slides.filter(
+      (s, j) => j !== i && (this.minis[j].mini ?? this.minis[j]) === mini && s.classList.contains('has-cap'),
+    );
+    for (const s of others) s.classList.remove('has-cap');
+    if (others.length) this.fit(others);
   }
 
   go(delta) {
@@ -222,12 +241,12 @@ export class Viewer {
   }
 
   // Size each photo to fit the slide (minus its caption).
-  fit() {
-    for (const [i, s] of this.slides.entries()) {
-      const m = this.minis[i];
+  fit(slides = this.slides) {
+    for (const s of slides) {
+      const m = this.minis[+s.dataset.index];
       const img = s.querySelector('img');
       const cs = getComputedStyle(s);
-      const cap = s.querySelector('.cap');
+      const cap = s.classList.contains('has-cap') && s.querySelector('.cap');
       const availW = s.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
       const availH =
         s.clientHeight -

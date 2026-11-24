@@ -321,6 +321,10 @@ body[data-view="stickers"] .foot {
   transition: none;
 }
 
+.slide:not(.has-cap) .cap {
+  display: none;
+}
+
 .cap {
   max-width: 42em;
   text-align: center;
