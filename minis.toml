@@ -18,10 +18,15 @@
 #   hidden      = true         # leave it out entirely
 
 [[mini]]
-photos = ["DSC_8855", "DSC_8849", "DSC_8859", "DSC_8852"]
+photos = ["DSC_8855", "DSC_8849", "DSC_8852"]
 
 [[mini]]
-photos = ["DSC_8866", "DSC_8860", "DSC_8869"]
+photos = ["DSC_8866", "DSC_8869"]
 
 [[mini]]
-photos = ["DSC_8864", "DSC_8871", "DSC_8874"]
+photos = ["DSC_8864", "DSC_8874"]
+
+# Hidden photos.
+[[mini]]
+photos = ["DSC_8859", "DSC_8860", "DSC_8871"]
+hidden = true
