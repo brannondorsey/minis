@@ -20,7 +20,14 @@
   .by { margin-top: 44px; font: 500 22px ui-sans-serif, system-ui, "Helvetica Neue", sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #8f8b83; }
   .mech { position: absolute; width: 580px; right: 48px; top: 48px; transform: rotate(-5deg);
     filter: drop-shadow(0 2px 3px rgba(28,27,25,.18)) drop-shadow(0 22px 30px rgba(28,27,25,.22)); }
+  .dark .card { background-color: #121211; background-image: radial-gradient(rgba(236,235,230,0.09) 1.3px, transparent 1.8px); color: #ecebe6; }
+  .dark p { color: #a9a59c; }
+  .dark .by { color: #85827b; }
+  .dark .dot { box-shadow: 0 0 0 1.5px #3a3833; }
+  .dark .dot::after { background: #ee6a4f; }
+  .dark .mech { filter: drop-shadow(0 2px 3px rgba(0,0,0,.5)) drop-shadow(0 24px 36px rgba(0,0,0,.55)); }
 </style>
+<script>if (location.hash === '#dark') document.documentElement.className = 'dark';</script>
 </head>
 <body>
   <div class="card">
