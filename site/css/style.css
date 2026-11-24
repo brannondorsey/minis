@@ -1,35 +1,6 @@
 /* ---------------------------------------------------------------- tokens */
 
 :root {
-  --bg: #f6f5f2;
-  --fg: #1c1b19;
-  --muted: #8f8b83;
-  --faint: rgba(28, 27, 25, 0.07);
-  --dot: rgba(28, 27, 25, 0.11);
-  --tile: #ebe9e4;
-  --accent: #c8371f;
-  --edge: clamp(10px, 2.2vw, 32px);
-  --gap: clamp(6px, 0.9vw, 12px);
-  --serif: "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
-  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-  --ease: cubic-bezier(0.2, 0.7, 0.15, 1);
-  color-scheme: light;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #121211;
-    --fg: #ecebe6;
-    --muted: #85827b;
-    --faint: rgba(236, 235, 230, 0.08);
-    --dot: rgba(236, 235, 230, 0.09);
-    --tile: #1d1c1a;
-    --accent: #ee6a4f;
-    color-scheme: dark;
-  }
-}
-
-:root[data-theme="dark"] {
   --bg: #121211;
   --fg: #ecebe6;
   --muted: #85827b;
@@ -37,6 +8,11 @@
   --dot: rgba(236, 235, 230, 0.09);
   --tile: #1d1c1a;
   --accent: #ee6a4f;
+  --edge: clamp(10px, 2.2vw, 32px);
+  --gap: clamp(6px, 0.9vw, 12px);
+  --serif: "Newsreader", ui-serif, Georgia, "Times New Roman", serif;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --ease: cubic-bezier(0.2, 0.7, 0.15, 1);
   color-scheme: dark;
 }
 
@@ -508,14 +484,7 @@ body[data-view="stickers"] {
 }
 
 .st .shadow {
-  mix-blend-mode: multiply;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .st .shadow {
-    mix-blend-mode: normal;
-    filter: brightness(0);
-  }
+  filter: brightness(0);
 }
 
 .handle {
