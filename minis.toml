@@ -19,12 +19,18 @@
 
 [[mini]]
 photos = ["DSC_8855", "DSC_8849", "DSC_8852"]
+name = "Mimic"
+description = "The iconic [Mimic monster](https://en.wikipedia.org/wiki/Mimic_%28Dungeons_%26_Dragons%29?wprov=sfla1) from D&D; about the size of a dime."
 
 [[mini]]
 photos = ["DSC_8866", "DSC_8869"]
+name = "Zehra"
+description = "Zehra & Kar of the Crimean Khanate, a playable character from the [Scythe](https://stonemaiergames.com/games/scythe/) board game."
 
 [[mini]]
 photos = ["DSC_8864", "DSC_8874"]
+name = "Crimean Mech"
+description = "Crimean Mech from the [Scythe](https://stonemaiergames.com/games/scythe/) board game."
 
 # Hidden photos.
 [[mini]]
